@@ -1,9 +1,9 @@
 #include "list.h"
 
-dsl_list_handle_t dsl_list_create_list(size_t data_size)
+dsal_list_handle_t dsal_list_create_list(size_t data_size)
 {
-    dsl_list_handle_t list = (dsl_list_handle_t)dsl_malloc(sizeof(dsl_list_t));
-    if(list)
+    dsal_list_handle_t list = (dsal_list_handle_t)dsal_malloc(sizeof(dsal_list_t));
+    if (list)
     {
         list->head = NULL;
         list->tail = NULL;
@@ -14,50 +14,50 @@ dsl_list_handle_t dsl_list_create_list(size_t data_size)
     return NULL;
 }
 
-void dsl_list_delete_list(dsl_list_handle_t list)
+void dsal_list_delete_list(dsal_list_handle_t list)
 {
-    if(!list) return;
-    dsl_list_node_handle_t temp = list->head;
-    while(list->head)
+    if (!list) return;
+    dsal_list_node_handle_t temp = list->head;
+    while (list->head)
     {
         list->head = temp->next;
-        dsl_list_delete_node(temp);
+        dsal_list_delete_node(temp);
     }
-    dsl_free(list);
+    dsal_free(list);
 }
 
-dsl_list_node_handle_t dsl_list_create_node(size_t data_size)
+dsal_list_node_handle_t dsal_list_create_node(size_t data_size)
 {
-    dsl_list_node_handle_t node = (dsl_list_node_handle_t)dsl_malloc(sizeof(dsl_list_node_t));
-    if(node)
+    dsal_list_node_handle_t node = (dsal_list_node_handle_t)dsal_malloc(sizeof(dsal_list_node_t));
+    if (node)
     {
-        node->data = dsl_malloc(data_size);
-        if(node->data)
+        node->data = dsal_malloc(data_size);
+        if (node->data)
         {
             node->next = NULL;
-        	node->last = NULL;
+            node->last = NULL;
             return node;
         }
         else
-            dsl_free(node);
+            dsal_free(node);
     }
     return NULL;
 }
 
-void dsl_list_delete_node(dsl_list_node_handle_t node)
+void dsal_list_delete_node(dsal_list_node_handle_t node)
 {
-    if(!node) return;
-    dsl_free(node->data);
-    dsl_free(node);
+    if (!node) return;
+    dsal_free(node->data);
+    dsal_free(node);
 }
 
-void dsl_list_insert_at_head(dsl_list_handle_t list, dsl_list_node_handle_t node)
+void dsal_list_insert_at_head(dsal_list_handle_t list, dsal_list_node_handle_t node)
 {
-    if(!list || !node) return;
-    dsl_list_node_handle_t head = list->head;
+    if (!list || !node) return;
+    dsal_list_node_handle_t head = list->head;
     node->next = head;
     node->last = NULL;
-    if(head)
+    if (head)
         head->last = node;
     else
         list->tail = node;
@@ -65,13 +65,13 @@ void dsl_list_insert_at_head(dsl_list_handle_t list, dsl_list_node_handle_t node
     ++list->length;
 }
 
-void dsl_list_insert_at_tail(dsl_list_handle_t list, dsl_list_node_handle_t node)
+void dsal_list_insert_at_tail(dsal_list_handle_t list, dsal_list_node_handle_t node)
 {
-    if(!list || !node) return;
-    dsl_list_node_handle_t tail = list->tail;
+    if (!list || !node) return;
+    dsal_list_node_handle_t tail = list->tail;
     node->next = NULL;
     node->last = tail;
-    if(tail)
+    if (tail)
         tail->next = node;
     else
         list->head = node;
@@ -79,218 +79,170 @@ void dsl_list_insert_at_tail(dsl_list_handle_t list, dsl_list_node_handle_t node
     ++list->length;
 }
 
-void dsl_list_insert(dsl_list_handle_t list, int index, dsl_list_node_handle_t node)
+void dsal_list_insert_at_index(dsal_list_handle_t list, int index, dsal_list_node_handle_t node)
 {
-    if(!list || !node) return;
-    int i = 0;
-    dsl_list_node_handle_t temp = NULL;
-    if(index == 0 || -index > list->length)
-        dsl_list_insert_at_head(list, node);
-    else if(index == -1 || index >= list->length)
-        dsl_list_insert_at_tail(list, node);
+    if (!list || !node) return;
+    if (index == 0 || index < -list->length)
+        dsal_list_insert_at_head(list, node);
+    else if (index == -1 || index >= list->length)
+        dsal_list_insert_at_tail(list, node);
     else
     {
-        if(index > 0)
+        int i;
+        dsal_list_node_handle_t temp;
+        if (index < 0) index = list->length + index + 1;
+        if (index <= list->length / 2)
         {
-            temp = list->head->next;
-            for(i = 1; i < list->length; ++i)
-            {
-                if(i == index)
-                    break;
+            temp = list->head;
+            for (i = 0; i < index - 1; ++i)
                 temp = temp->next;
-            }
-            node->next = temp;
-            node->last = temp->last;
-            temp->last->next = node;
-            temp->last = node;
         }
-        else if(index < -1)
+        else
         {
-            temp = list->tail->last;
-            for(i = -2; -i <= list->length; --i)
-            {
-                if(i == index)
-                    break;
+            temp = list->tail;
+            for (i = 0; i < list->length - index; ++i)
                 temp = temp->last;
-            }
-            node->last = temp;
-            node->next = temp->next;
-            temp->next->last = node;
-            temp->next = node;
         }
+        node->last = temp;
+        node->next = temp->next;
+        node->next->last = node;
+        temp->next = node;
         ++list->length;
     }
 }
 
-void dsl_list_remove_at_head(dsl_list_handle_t list, dsl_list_node_handle_t *removed_node)
+void dsal_list_remove_at_head(dsal_list_handle_t list, dsal_list_node_handle_t* removed_node)
 {
-    if(!list) return;
-    dsl_list_node_handle_t temp = list->head;
-    if(temp)
+    if (!list) return;
+    dsal_list_node_handle_t temp = list->head;
+    if (temp)
     {
         list->head = temp->next;
-        if(!temp->next)
+        if (!temp->next)
             list->tail = NULL;
         temp->last = NULL;
         temp->next = NULL;
         --list->length;
     }
-    if(removed_node)
+    if (removed_node)
         *removed_node = temp;
-    else if(temp)
-        dsl_list_delete_node(temp);
+    else if (temp)
+        dsal_list_delete_node(temp);
 }
 
-void dsl_list_remove_at_tail(dsl_list_handle_t list, dsl_list_node_handle_t *removed_node)
+void dsal_list_remove_at_tail(dsal_list_handle_t list, dsal_list_node_handle_t* removed_node)
 {
-    if(!list) return;
-    dsl_list_node_handle_t temp = list->tail;
-    if(temp)
+    if (!list) return;
+    dsal_list_node_handle_t temp = list->tail;
+    if (temp)
     {
         list->tail = temp->last;
-        if(!temp->last)
+        if (!temp->last)
             list->head = NULL;
         temp->last = NULL;
         temp->next = NULL;
         --list->length;
     }
-    if(removed_node)
+    if (removed_node)
         *removed_node = temp;
-    else if(temp)
-        dsl_list_delete_node(temp);
+    else if (temp)
+        dsal_list_delete_node(temp);
 }
 
-void dsl_list_remove(dsl_list_handle_t list, int index, dsl_list_node_handle_t *removed_node)
+void dsal_list_remove_at_index(dsal_list_handle_t list, int index, dsal_list_node_handle_t* removed_node)
 {
-    if(!list) return;
-    int i = 0;
-    dsl_list_node_handle_t temp = NULL;
-    if(index == 0 || -index > list->length - 1)
-    dsl_list_remove_at_head(list, removed_node);
-    else if(index == -1 || index >= list->length - 1)
-    dsl_list_remove_at_tail(list, removed_node);
+    if (!list) return;
+    if (index == 0 || index <= -list->length)
+        dsal_list_remove_at_head(list, removed_node);
+    else if (index == -1 || index >= list->length - 1)
+        dsal_list_remove_at_tail(list, removed_node);
     else
     {
-        if(index > 0)
+        int i;
+        dsal_list_node_handle_t temp;
+        if (index < 0) index = list->length + index;
+        if (index < list->length / 2)
         {
             temp = list->head->next;
-            for(i = 1; i < list->length - 1; ++i)
-            {
-                if(i == index)
-                    break;
+            for (i = 1; i < index; ++i)
                 temp = temp->next;
-            }
-            temp->next->last = temp->last;
-            temp->last->next = temp->next;
-            temp->next = NULL;
-            temp->last = NULL;
         }
-        else if(index < -1)
+        else
         {
             temp = list->tail->last;
-            for(i = -2; -i <= list->length - 1; --i)
-            {
-                if(i == index)
-                    break;
+            for (i = 1; i < (list->length - 1) - index; ++i)
                 temp = temp->last;
-            }
-            temp->next->last = temp->last;
-            temp->last->next = temp->next;
-            temp->next = NULL;
-            temp->last = NULL;
         }
-        if(removed_node)
+        temp->next->last = temp->last;
+        temp->last->next = temp->next;
+        temp->next = NULL;
+        temp->last = NULL;
+        if (removed_node)
             *removed_node = temp;
         else
-            dsl_list_delete_node(temp);
+            dsal_list_delete_node(temp);
         --list->length;
     }
 }
 
-dsl_list_node_handle_t dsl_list_add(dsl_list_handle_t list, int index, void *data)
+dsal_list_node_handle_t dsal_list_add(dsal_list_handle_t list, int index, void* data)
 {
-    if(!list) return NULL;
-    dsl_list_node_handle_t node = dsl_list_create_node(list->data_size);
-    if(node)
+    if (!list) return NULL;
+    dsal_list_node_handle_t node = dsal_list_create_node(list->data_size);
+    if (node)
     {
-        if(data)
-        dsl_memcpy(node->data, data, list->data_size);
-        dsl_list_insert(list, index, node);
+        if (data)
+            dsal_memcpy(node->data, data, list->data_size);
+        dsal_list_insert_at_index(list, index, node);
         return node;
     }
     return NULL;
 }
 
-void dsl_list_delete(dsl_list_handle_t list, int index)
+void dsal_list_delete(dsal_list_handle_t list, int index)
 {
-    if(!list) return;
-    dsl_list_remove(list, index, NULL);
+    if (!list) return;
+    dsal_list_remove_at_index(list, index, NULL);
 }
 
-dsl_list_node_handle_t dsl_list_modify(dsl_list_handle_t list, int index, void *data)
+dsal_list_node_handle_t dsal_list_get(dsal_list_handle_t list, int index)
 {
-    if(!list || !data) return NULL;
-    int i = 0;
-    dsl_list_node_handle_t temp = NULL;
-    if(index >= 0)
-    {
-        temp = list->head;
-        for(i = 0; i < list->length; ++i)
-        {
-            if(i == index)
-            {
-                dsl_memcpy(temp->data, data, list->data_size);
-                return temp;
-            }
-            temp = temp->next;
-        }
-    }
+    if (!list) return NULL;
+    if (index == 0 || index <= -list->length)
+        return list->head->data;
+    else if (index == -1 || index >= list->length - 1)
+        return list->tail->data;
     else
     {
-        temp = list->tail;
-        for(i = -1; -i < list->length; --i)
+        int i;
+        dsal_list_node_handle_t temp;
+        if (index < 0) index = list->length + index;
+        if (index < list->length / 2)
         {
-            if(i == index)
-            {
-                dsl_memcpy(temp->data, data, list->data_size);
-                return temp;
-            }
-            temp = temp->last;
+            temp = list->head->next;
+            for (i = 1; i < index; ++i)
+                temp = temp->next;
         }
+        else
+        {
+            temp = list->tail->last;
+            for (i = 1; i < (list->length - 1) - index; ++i)
+                temp = temp->last;
+        }
+        return temp;
     }
-    return NULL;
 }
 
-dsl_list_node_handle_t dsl_list_extract(dsl_list_handle_t list, int index, void *data)
+inline void *dsal_list_forward_iterator(dsal_list_node_handle_t start)
 {
-    if(!list || !data) return NULL;
-    int i = 0;
-    dsl_list_node_handle_t temp = NULL;
-    if(index >= 0)
-    {
-        temp = list->head;
-        for(i = 0; i < list->length; ++i)
-        {
-            if(i == index)
-            {
-                dsl_memcpy(data, temp->data, list->data_size);
-                return temp;
-            }
-            temp = temp->next;
-        }
-    }
-    else
-    {
-        temp = list->tail;
-        for(i = -1; -i < list->length; --i)
-        {
-            if(i == index)
-            {
-                dsl_memcpy(data, temp->data, list->data_size);
-                return temp;
-            }
-            temp = temp->last;
-        }
-    }
-    return NULL;
+    void *data = start->data;
+    start = start->next;
+    return data;
+}
+
+inline void *dsal_list_backward_iterator(dsal_list_node_handle_t start)
+{
+    void *data = start->data;
+    start = start->last;
+    return data;
 }
