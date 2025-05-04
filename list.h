@@ -11,7 +11,7 @@ typedef struct dsal_list_node_t
 {
     void *data;
     struct dsal_list_node_t *next;
-    struct dsal_list_node_t *last;
+    struct dsal_list_node_t *prev;
 } dsal_list_node_t, *dsal_list_node_handle_t;
 
 typedef struct
@@ -24,7 +24,7 @@ typedef struct
 
 dsal_list_handle_t dsal_list_create_list(size_t data_size);
 void dsal_list_delete_list(dsal_list_handle_t list);
-dsal_list_node_handle_t dsal_list_create_node(size_t data_size);
+dsal_list_node_handle_t dsal_list_create_node(dsal_list_handle_t list);
 void dsal_list_delete_node(dsal_list_node_handle_t node);
 void dsal_list_insert_at_head(dsal_list_handle_t list, dsal_list_node_handle_t node);
 void dsal_list_insert_at_tail(dsal_list_handle_t list, dsal_list_node_handle_t node);
@@ -35,8 +35,6 @@ void dsal_list_remove_at_index(dsal_list_handle_t list, int index, dsal_list_nod
 dsal_list_node_handle_t dsal_list_add(dsal_list_handle_t list, int index, void *data);
 void dsal_list_delete(dsal_list_handle_t list, int index);
 dsal_list_node_handle_t dsal_list_get(dsal_list_handle_t list, int index);
-inline void *dsal_list_forward_iterator(dsal_list_node_handle_t start);
-inline void *dsal_list_backward_iterator(dsal_list_node_handle_t start);
 
 #ifdef __cplusplus
 }
